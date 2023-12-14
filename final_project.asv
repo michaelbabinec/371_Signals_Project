@@ -6,9 +6,11 @@
 %I = imread ('C:\Users\minec\Desktop\CompressJPEG.online_512x512_image.png');
 
 
-original_image = imread ('https://i.imgur.com/2svdjbH.png');
+%original_image = imread ('https://i.imgur.com/2svdjbH.png');
 %currently links to the CSUF Logo
 
+original_image = imread ('https://cdn1.iconfinder.com/data/icons/google_jfk_icons_by_carlosjj/512/chrome.png');
+%links to the Chrome logo
 
 %FFTs require the image be a double
 % This does that conversion
@@ -66,47 +68,64 @@ shifted_green = fftshift(fft_green);
 shifted_blue = fftshift(fft_blue);
 
 
-%Fs = 1000;            % Sampling frequency                    
-%T = 1/Fs;             % Sampling period     
-
-%figure;
-%subplot (3, 1, 1)
-%plot(Fs/L*(0:length(fft_blue)-1),abs(fft_blue),"LineWidth",3)
-%title("blue")
-%xlabel("f (Hz)")
-%ylabel("|fft(X)|")
 
 
-%subplot (3, 1, 2);
-%plot(Fs/L*(0:length(shifted_red)-1),abs(shifted_red),"LineWidth",3)
-%title("red")
-%xlabel("f (Hz)")
-%ylabel("|fft(X)|")
+%These are representations of the actual FFTs as spikes on a plot
+%the shift can be seen
+
+figure;
+sgtitle("Figures of the RGB Channels in shifted FFT form");
+
+subplot (4, 1, 1)
+plot(abs(shifted_blue))
+title("Blue")
+xlabel("frequency (Hz)")
+ylabel("Amplitude")
 
 
-%subplot (3, 1, 3);
-%plot(Fs/L*(0:length(fft_green)-1),abs(fft_green),"LineWidth",3)
-%title("green")
-%xlabel("f (Hz)")
-%ylabel("|fft(X)|")
+subplot (4, 1, 2);
+plot(abs(shifted_red))
+title("Red")
+xlabel("f (Hz)")
+ylabel("Amplitude")
 
 
-
-
-
-
+subplot (4, 1, 3);
+plot(abs(shifted_green))
+title("Green")
+xlabel("f (Hz)")
+ylabel("Amplitude")
 
 
 
 
-% Using fspecial, you calculate a gaussian blur, and apply it to a matrix
+
+
+
+
+
+
+% Using fspecial, you calculate a gaussian pulse, and apply it to a matrix
 % the same size as our matrices
 gaussian_blur_filter = fspecial( 'gaussian', [512 512] , 3.0 );
+
+figure;
+subplot (3, 1, 1);
+plot(abs(gaussian_blur_filter))
+title("Gauss")
+
 
 %In the same way as we did for each of the color channels, now we have to
 %preform an fft on the gaussian matrix, and shift the values.
 gauss_fft = fft2(gaussian_blur_filter);  % Fourier Transform of 2D Gaussian 
 filter = fftshift(gauss_fft); 
+
+subplot (3, 1, 2);
+plot(abs(filter))
+title("Gauadadss")
+xlabel("f (Hz)")
+ylabel("Amplitude")
+
 
 % We can apply the filter using simple dot products of matrices.
 postproc_red = filter .* shifted_red ; 
@@ -126,39 +145,85 @@ Blurred_Green = fftshift(real(ifft2(inverse_green)));
 Blurred_Blue = fftshift(real(ifft2(inverse_blue)));
 
 
-%cat concatenates the matrix back into its image form, 
+%cat concatenates the matrix back into its image form. 
 % as shown before, these are the 3 RGB matrices of the image being
-% constructed by the concate
+% constructed by the concatenation, with emtpy black 0 matrices taking the
+% place of any necessary channels when we're only trying to show one
 red_image = cat(3,Blurred_Red, true_black, true_black);
 green_image = cat(3, true_black, Blurred_Green, true_black);
+blue_image = cat(3, true_black, true_black, Blurred_Blue); 
 
-%This is the the blue image, currently minus any guassian blue
-blue_image = cat(3, true_black, true_black, Channel_Blue); 
+
+%this does the same for the unblurred channels
+red_orig = cat(3,Channel_Red, true_black, true_black);
+green_orig = cat(3, true_black, Channel_Green, true_black);
+blue_orig = cat(3, true_black, true_black, Channel_Blue);
+
+%Same for the extra outputs, but Uint8 to get real colors
+extra_image1 = uint8(cat(3,Blurred_Red, Blurred_Green, Channel_Blue));
+extra_image2 = uint8(cat(3, Channel_Red, Channel_Green, Blurred_Blue));
+extra_image3 = uint8(cat(3, Blurred_Blue, Blurred_Red, Blurred_Green));
 
 %Reconstruction of the image is handled here, if you want a certain color
-%channel to skip the gaussian blur, you can insert the original channel
-%here, from before its fft inversions
-recon_image = uint8(cat(3, Blurred_Red, Blurred_Green, Channel_Blue));
+%channel to skip the gaussian blur, you can insert the original channel as
+%   'Channel_Color' here, from before its fft inversions
+recon_image = uint8(cat(3, Blurred_Red, Blurred_Green, Blurred_Blue));
 
 % Image Display
 
 figure;
-subplot(2,3,4);
+sgtitle("Final Output");
+
+subplot(4,3,1);
 %Image from Red Matrix
-imshow(red_image);
-title('Red Channel');
+imshow(original_image);
+title('Original Image');
 
-subplot(2,3,5);
-%Image from Green Matrix
-imshow(green_image);
-title('Green Channel');
-
-subplot(2,3,6);
-%Image from Blue Matrix
-imshow(blue_image);
-title('Blue Channel', 'Currently Not Blurred');
-
-subplot(2,3,2);
+subplot(4,3,3);
 %Image from Red Matrix
 imshow(recon_image);
-title('Reconstruction of the Original');
+title('Reconstruction of the Original Through Channels');
+
+
+%Original Channels
+subplot(4,3,4);
+%Image from Red Matrix
+imshow(red_orig);
+title('Original Red Channel');
+subplot(4,3,5);
+%Image from Green Matrix
+imshow(green_orig);
+title('Original Green Channel');
+subplot(4,3,6);
+%Image from Blue Matrix
+imshow(blue_orig);
+title('Original Blue Channel');
+
+%Blurred Channels
+subplot(4,3,7);
+%Image from Red Matrix
+imshow(red_image);
+title('Blurred Red Channel');
+subplot(4,3,8);
+%Image from Green Matrix
+imshow(green_image);
+title('Blurred Green Channel');
+subplot(4,3,9);
+%Image from Blue Matrix
+imshow(blue_image);
+title('Blurred Blue Channel');
+
+%Extra Outputs
+subplot(4,3,10);
+%Currently a Red/Green Channel Blur
+imshow(extra_image1);
+title('Red/Blue Blur');
+subplot(4,3,11);
+%%Currently only blurs the Blue Channel
+imshow(extra_image2);
+title('Only Blurred Blue');
+subplot(4,3,12);
+%%Currently places the blurred 'RGB' channels back into an image
+% with a 'BRG' shift
+imshow(extra_image3);
+title('Blurred Channel Shift');
