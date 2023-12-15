@@ -6,10 +6,10 @@
 %I = imread ('C:\Users\minec\Desktop\CompressJPEG.online_512x512_image.png');
 
 
-%original_image = imread ('https://i.imgur.com/2svdjbH.png');
+original_image = imread ('https://i.imgur.com/2svdjbH.png');
 %currently links to the CSUF Logo
 
-original_image = imread ('https://cdn1.iconfinder.com/data/icons/google_jfk_icons_by_carlosjj/512/chrome.png');
+%original_image = imread ('https://cdn1.iconfinder.com/data/icons/google_jfk_icons_by_carlosjj/512/chrome.png');
 %links to the Chrome logo
 
 %FFTs require the image be a double
@@ -69,71 +69,105 @@ shifted_red = fftshift(fft_red);
 shifted_green = fftshift(fft_green);
 shifted_blue = fftshift(fft_blue);
 
-
-
-
-%These are representations of the actual FFTs as spikes on a plot
-%the shift can be seen
+%These are representations of the actual FFTs
 
 figure;
 sgtitle("Figures of the RGB Channels in shifted FFT form");
 
-subplot (3, 1, 3)
-plot(abs(shifted_blue))
-title("Blue (Shifted)")
-xlabel("Frequency (Hz)")
-ylabel("Amplitude")
 
+subplot(2, 3, 1);
+imshow(fft_red);
+title('Red FFT');
+subplot(2, 3, 2);
+imshow(fft_green);
+title('Green FFT');
+subplot(2, 3, 3);
+imshow(fft_blue);
+title('Blue FFT');
 
-subplot (3, 1, 1);
-plot(abs(shifted_red))
-title("Red (Shifted)")
-xlabel("Frequency (Hz)")
-ylabel("Amplitude")
-
-
-subplot (3, 1, 2);
-plot(abs(shifted_green))
-title("Green (Shifted)")
-xlabel("Frequency (Hz)")
-ylabel("Amplitude")
-
-
-
+subplot(2, 3, 4);
+imshow(shifted_red);
+title('Shifted Red FFT')
+subplot(2, 3, 5);
+imshow(shifted_green);
+title('Shifted Green FFT')
+subplot(2, 3, 6);
+imshow(shifted_blue);
+title('Shifted Blue FFT')
 
 
 
+%Attempts to plot FFTs in plot form
+%subplot (3, 1, 3)
+%plot(abs(shifted_blue))
+%title("Blue (Shifted)")
+%xlabel("Frequency (Hz)")
+%ylabel("Amplitude")
+
+%subplot (3, 1, 1);
+%plot(abs(shifted_red))
+%title("Red (Shifted)")
+%xlabel("Frequency (Hz)")
+%ylabel("Amplitude")
+
+%subplot (3, 1, 2);
+%plot(abs(shifted_green))
+%title("Green (Shifted)")
+%xlabel("Frequency (Hz)")
+%ylabel("Amplitude")
 
 
 
 
 % Using fspecial, you calculate a gaussian pulse, and apply it to a matrix
 % the same size as our matrices
-gaussian_blur_filter = fspecial( 'gaussian', [512 512] , 3.0 );
+gaussian_blur_filter = fspecial( 'gaussian', [512 512] , 5.0 );
 
-figure;
-sgtitle('Gaussian Filter & FFT');
 
-subplot (3, 1, 1);
-plot(abs(gaussian_blur_filter))
-title("Gauss")
+
 
 %In the same way as we did for each of the color channels, now we have to
 %preform an fft on the gaussian matrix, and shift the values.
 gauss_fft = fft2(gaussian_blur_filter);  % Fourier Transform of 2D Gaussian 
 filter = fftshift(gauss_fft); 
 
-subplot (3, 1, 2);
-plot(abs(gauss_fft))
-title("Gaussian FFT")
-xlabel("Frequency (Hz)")
-ylabel("Amplitude")
+%Plots of the Gaussian Blur
 
-subplot (3, 1, 3);
-plot(abs(filter))
-title("Gaussian FFT (Shifted)")
-xlabel("Frequency (Hz)")
-ylabel("Amplitude")
+figure;
+sgtitle('Gaussian Filter & FFT');
+
+subplot(1, 3, 1);
+imshow(gaussian_blur_filter);
+title('Gaussian Kernel')
+
+subplot(1, 3, 2);
+imshow(gauss_fft);
+title('Gaussian FFT')
+
+subplot(1, 3, 3);
+imshow(filter);
+title('Final Shifted Gaussian Blur')
+
+%Attempts to plot Gaussian in plot form
+
+%figure;
+%sgtitle('Gaussian Filter & FFT');
+
+%subplot (3, 1, 1);
+%plot(abs(gaussian_blur_filter))
+%title("Gauss")
+
+%subplot (3, 1, 2);
+%plot(abs(gauss_fft))
+%title("Gaussian FFT")
+%xlabel("Frequency (Hz)")
+%ylabel("Amplitude")
+
+%subplot (3, 1, 3);
+%plot(abs(filter))
+%title("Gaussian FFT (Shifted)")
+%xlabel("Frequency (Hz)")
+%ylabel("Amplitude")
 
 
 % We can apply the filter using simple dot products of matrices.
@@ -141,8 +175,24 @@ postproc_red = filter .* shifted_red ;
 postproc_green = filter .* shifted_green; 
 postproc_blue = filter .* shifted_blue; 
 
+figure;
+sgtitle('Gaussian Filter Applied to Channels');
 
-% Inverse FFT on Each of the Channels to bring this back into the necessary form for display
+subplot(1, 3, 1);
+imshow(postproc_red);
+title('Red Channel with Gaussian')
+
+subplot(1, 3, 2);
+imshow(postproc_green);
+title('Green Channel with Gaussian')
+
+subplot(1, 3, 3);
+imshow(postproc_blue);
+title('Blue Channel with Gaussian')
+
+
+
+% Inverse FFT on Each of the Channels to bring this back into the necessary domain for display
 inverse_red = ifftshift(postproc_red);
 inverse_green = ifftshift(postproc_green);
 inverse_blue = ifftshift(postproc_blue);
@@ -154,7 +204,34 @@ Blurred_Green = fftshift(real(ifft2(inverse_green)));
 Blurred_Blue = fftshift(real(ifft2(inverse_blue)));
 
 
-%cat concatenates the matrix back into its image form. 
+
+figure;
+sgtitle("Processed Figures of the RGB Channels in shifted FFT form");
+
+
+subplot(2, 3, 1);
+imshow(inverse_red);
+title('Blurred Red FFT');
+subplot(2, 3, 2);
+imshow(inverse_green);
+title('Blurred Green FFT');
+subplot(2, 3, 3);
+imshow(inverse_blue);
+title('Blurred Blue FFT');
+
+subplot(2, 3, 4);
+imshow(Blurred_Red);
+title('Blurred Shifted Red FFT')
+subplot(2, 3, 5);
+imshow(Blurred_Green);
+title('Blurred Shifted Green FFT')
+subplot(2, 3, 6);
+imshow(Blurred_Blue);
+title('Blurred Shifted Blue FFT')
+
+
+
+%cat concatenates the matrices back into its RGB image form. 
 % as shown before, these are the 3 RGB matrices of the image being
 % constructed by the concatenation, with emtpy black 0 matrices taking the
 % place of any necessary channels when we're only trying to show one
